@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ace Badminton Club — Thursday Night</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+  :root{
+    --court-green:#1B4D3E;
+    --court-green-dark:#10332A;
+    --shuttle-lime:#D4F35F;
+    --ink:#14201C;
+    --paper:#F7F6F1;
+    --line-white:#FFFFFF;
+    --amber:#E8A33D;
+    --full-red:#D6553F;
+    --gray:#8A958F;
+    --card-border: rgba(20,32,28,0.10);
+  }
+
+  *{box-sizing:border-box; margin:0; padding:0;}
+
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter', sans-serif;
+    line-height:1.5;
+    padding:0 0 60px 0;
+  }
+
+  .wrap{ max-width:640px; margin:0 auto; padding:0 18px; }
+
+  /* ---------- HEADER ---------- */
+  .header{
+    background: linear-gradient(165deg, var(--court-green) 0%, var(--court-green-dark) 100%);
+    color: var(--paper);
+    padding: 36px 20px 28px;
+    position:relative;
+    overflow:hidden;
+  }
+  .header::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    background-image:
+      repeating-linear-gradient(90deg, rgba(255,255,255,0.05) 0 1px, transparent 1px 64px);
+    pointer-events:none;
+  }
+  .header-inner{ max-width:640px; margin:0 auto; position:relative; }
+  .eyebrow{
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color: var(--shuttle-lime);
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin-bottom:10px;
+  }
+  .eyebrow .dot{ width:6px; height:6px; border-radius:50%; background:var(--shuttle-lime); }
+  .club-name{
+    font-family:'Oswald', sans-serif;
+    font-weight:700;
+    font-size:34px;
+    text-transform:uppercase;
+    letter-spacing:.01em;
+    line-height:1.05;
+  }
+  .event-title{
+    font-family:'Oswald', sans-serif;
+    font-weight:500;
+    font-size:16px;
+    color: rgba(247,246,241,0.78);
+    margin-top:6px;
+  }
+  .meta-row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    margin-top:22px;
+  }
+  .meta-chip{
+    background: rgba(247,246,241,0.08);
+    border:1px solid rgba(247,246,241,0.18);
+    border-radius:8px;
+    padding:8px 12px;
+    font-size:13px;
+  }
+  .meta-chip .label{
+    display:block;
+    font-family:'JetBrains Mono', monospace;
+    font-size:9.5px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color: var(--shuttle-lime);
+    margin-bottom:2px;
+  }
+  .meta-chip a{ color:inherit; text-decoration:none; }
+  .meta-chip a:hover{ text-decoration:underline; }
+
+  /* ---------- SECTION LABEL ---------- */
+  .section-label{
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color: var(--gray);
+    margin: 30px 0 12px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .section-label::after{
+    content:"";
+    flex:1;
+    height:1px;
+    background: var(--card-border);
+  }
+
+  /* ---------- COURT METERS ---------- */
+  .sessions{ display:flex; flex-direction:column; gap:12px; }
+  .session-card{
+    background:#fff;
+    border:1px solid var(--card-border);
+    border-radius:12px;
+    padding:16px 18px;
+  }
+  .session-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    margin-bottom:10px;
+  }
+  .session-time{
+    font-family:'Oswald', sans-serif;
+    font-weight:600;
+    font-size:18px;
+  }
+  .session-sub{
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    color: var(--gray);
+  }
+  .session-count{
+    font-family:'JetBrains Mono', monospace;
+    font-size:13px;
+    font-weight:700;
+  }
+  .session-count.amber{ color: var(--amber); }
+  .session-count.full{ color: var(--full-red); }
+
+  .court-track{
+    position:relative;
+    height:22px;
+    background: #EEF0EA;
+    border-radius:5px;
+    overflow:hidden;
+    border:1px solid var(--card-border);
+  }
+  .court-track::after{
+    /* net line */
+    content:"";
+    position:absolute;
+    top:0; bottom:0; left:50%;
+    width:0;
+    border-left:2px dashed rgba(20,32,28,0.22);
+  }
+  .court-fill{
+    height:100%;
+    background: var(--court-green);
+    transition: width .4s ease;
+  }
+  .court-fill.amber{ background: var(--amber); }
+  .court-fill.full{ background: var(--full-red); }
+
+  .session-foot{
+    margin-top:8px;
+    font-size:12px;
+    color: var(--gray);
+  }
+
+  /* ---------- FORM ---------- */
+  .form-card{
+    background:#fff;
+    border:1px solid var(--card-border);
+    border-radius:12px;
+    padding:20px;
+    margin-top:14px;
+  }
+  .field{ margin-bottom:14px; }
+  .field label{
+    display:block;
+    font-size:12.5px;
+    font-weight:600;
+    margin-bottom:6px;
+  }
+  .field input, .field select{
+    width:100%;
+    padding:11px 12px;
+    border-radius:8px;
+    border:1px solid var(--card-border);
+    background: var(--paper);
+    font-family:'Inter', sans-serif;
+    font-size:14.5px;
+    color: var(--ink);
+  }
+  .field input:focus, .field select:focus{
+    outline:none;
+    border-color: var(--court-green);
+  }
+  .slot-options{
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr;
+    gap:8px;
+  }
+  .slot-btn{
+    border:1px solid var(--card-border);
+    background: var(--paper);
+    border-radius:8px;
+    padding:10px 4px;
+    text-align:center;
+    font-size:12.5px;
+    font-weight:600;
+    cursor:pointer;
+    transition: all .15s ease;
+  }
+  .slot-btn.selected{
+    background: var(--court-green);
+    border-color: var(--court-green);
+    color: var(--paper);
+  }
+  .slot-btn.disabled{
+    opacity:.4;
+    cursor:not-allowed;
+    text-decoration: line-through;
+  }
+  .submit-btn{
+    width:100%;
+    background: var(--court-green);
+    color: var(--paper);
+    border:none;
+    border-radius:8px;
+    padding:13px;
+    font-family:'Oswald', sans-serif;
+    font-weight:600;
+    font-size:15px;
+    letter-spacing:.02em;
+    text-transform:uppercase;
+    cursor:pointer;
+    margin-top:4px;
+    transition: opacity .15s ease;
+  }
+  .submit-btn:hover{ opacity:.9; }
+  .submit-btn:disabled{ opacity:.5; cursor:not-allowed; }
+  .form-msg{
+    font-size:12.5px;
+    margin-top:10px;
+    min-height:16px;
+  }
+  .form-msg.error{ color: var(--full-red); }
+  .form-msg.success{ color: var(--court-green); }
+
+  /* ---------- ROSTER ---------- */
+  .roster{
+    background:#fff;
+    border:1px solid var(--card-border);
+    border-radius:12px;
+    overflow:hidden;
+  }
+  .roster-row{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:11px 16px;
+    border-bottom:1px solid var(--card-border);
+  }
+  .roster-row:last-child{ border-bottom:none; }
+  .roster-num{
+    font-family:'JetBrains Mono', monospace;
+    font-size:13px;
+    color: var(--gray);
+    width:24px;
+    flex-shrink:0;
+  }
+  .roster-name{
+    flex:1;
+    font-weight:600;
+    font-size:14.5px;
+  }
+  .roster-badge{
+    font-family:'JetBrains Mono', monospace;
+    font-size:10.5px;
+    letter-spacing:.04em;
+    background: rgba(27,77,62,0.08);
+    color: var(--court-green);
+    border-radius:5px;
+    padding:4px 8px;
+    flex-shrink:0;
+  }
+  .roster-empty{
+    padding:30px 16px;
+    text-align:center;
+    color: var(--gray);
+    font-size:13.5px;
+  }
+
+  /* ---------- UTILITY ---------- */
+  .util-row{
+    display:flex;
+    gap:10px;
+    margin-top:14px;
+  }
+  .util-btn{
+    flex:1;
+    background: transparent;
+    border:1px solid var(--card-border);
+    color: var(--ink);
+    border-radius:8px;
+    padding:11px;
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+  }
+  .util-btn:hover{ background: rgba(20,32,28,0.04); }
+
+  .footer-note{
+    text-align:center;
+    font-size:11.5px;
+    color: var(--gray);
+    margin-top:24px;
+    font-family:'JetBrains Mono', monospace;
+  }
+
+  @media (max-width:420px){
+    .club-name{ font-size:28px; }
+    .slot-options{ grid-template-columns:1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-inner">
+    <div class="eyebrow"><span class="dot"></span>LIVE ROSTER — UPDATES FOR EVERYONE</div>
+    <div class="club-name" id="clubName">Ace Badminton Club</div>
+    <div class="event-title" id="eventTitle">Thursday Badminton Night</div>
+    <div class="meta-row">
+      <div class="meta-chip"><span class="label">Time</span><span id="metaTime">—</span></div>
+      <div class="meta-chip"><span class="label">Shuttle</span><span id="metaShuttle">—</span></div>
+      <div class="meta-chip"><span class="label">Organiser</span><a id="metaOrganizer" href="#"></a></div>
+      <div class="meta-chip"><span class="label">1 Hour</span><span id="metaPrice1">—</span></div>
+      <div class="meta-chip"><span class="label">2 Hours</span><span id="metaPrice2">—</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <div class="section-label">Court Capacity</div>
+  <div class="sessions" id="sessionsWrap"></div>
+
+  <div class="section-label">Add Your Name</div>
+  <div class="form-card">
+    <div class="field">
+      <label for="nameInput">Name</label>
+      <input type="text" id="nameInput" placeholder="e.g. Khaled" maxlength="40">
+    </div>
+    <div class="field">
+      <label>Timing</label>
+      <div class="slot-options" id="slotOptions"></div>
+    </div>
+    <button class="submit-btn" id="submitBtn">Add me to the list</button>
+    <div class="form-msg" id="formMsg"></div>
+  </div>
+
+  <div class="section-label">Players Registered (<span id="rosterCount">0</span>)</div>
+  <div class="roster" id="rosterWrap">
+    <div class="roster-empty">Loading roster…</div>
+  </div>
+
+  <div class="util-row">
+    <button class="util-btn" id="copyBtn">Copy list as text</button>
+    <button class="util-btn" id="refreshBtn">Refresh now</button>
+    <button class="util-btn" id="clearBtn">Clear data</button>
+  </div>
+
+  <div class="footer-note">PAGE SYNCS AUTOMATICALLY EVERY FEW SECONDS</div>
+
+</div>
+
+<script>
+  // ---------------------------------------------------------------
+  // EDIT THESE EACH WEEK — everything else updates automatically
+  // ---------------------------------------------------------------
+  const CONFIG = {
+    clubName: "FBC",
+    eventTitle: "Thursday Badminton Night",
+    organizerName: "FBC Tallah",
+    organizerPhone: "+971 54 567 3000",
+    organizerPhoneIntl: "971545673000",
+    whatsappGroupLink: "https://chat.whatsapp.com/CLF4WuTzxenFrkeY85tAlp?mode=gi_t",
+    mapsLink: "https://maps.app.goo.gl/oanFGspuArJuSzW29?g_st=aw",
+    eventDate: "18/06/2026",
+    eventDay: "Thursday Evening",
+    timeRange: "6:00 PM – 8:00 PM",
+    shuttle: "Yonex Mavis 2000",
+    price1Hour: "10 AED",
+    price2Hour: "15 AED",
+    sessions: [
+      { id: "6-7", label: "6:00 – 7:00 PM", courts: 4, capacity: 16 },
+      { id: "7-8", label: "7:00 – 8:00 PM", courts: 4, capacity: 16 }
+    ],
+    slotChoices: [
+      { id: "6-7", short: "6–7 PM" },
+      { id: "7-8", short: "7–8 PM" },
+      { id: "6-8", short: "6–8 PM" }
+    ],
+    defaultRegistrations: [
+      { name: "Nithesh", slot: "6-8" },
+      { name: "Shaji", slot: "6-8" },
+      { name: "Dhas", slot: "6-8" },
+      { name: "Renin", slot: "6-8" },
+      { name: "Biju", slot: "7-8" },
+      { name: "Marzook", slot: "7-8" },
+      { name: "rizad", slot: "6-8" },
+      { name: "Sufyan", slot: "6-8" },
+      { name: "syahiran", slot: "6-8" },
+      { name: "Suresh", slot: "6-8" },
+      { name: "Rahul", slot: "6-8" }
+    ]
+  };
+
+  const STORAGE_KEY = "fbc-badminton:thursday-roster";
+
+  // ---------------------------------------------------------------
+  // RENDER META
+  // ---------------------------------------------------------------
+  document.getElementById('clubName').textContent = CONFIG.clubName;
+  document.getElementById('eventTitle').textContent = CONFIG.eventTitle;
+  document.getElementById('metaTime').textContent = CONFIG.timeRange;
+  document.getElementById('metaShuttle').textContent = CONFIG.shuttle;
+  document.getElementById('metaPrice1').textContent = CONFIG.price1Hour;
+  document.getElementById('metaPrice2').textContent = CONFIG.price2Hour;
+  const orgEl = document.getElementById('metaOrganizer');
+  orgEl.textContent = CONFIG.organizerName + " · " + CONFIG.organizerPhone;
+  orgEl.href = "https://wa.me/" + CONFIG.organizerPhoneIntl;
+
+  // ---------------------------------------------------------------
+  // STATE
+  // ---------------------------------------------------------------
+  let registrations = [];
+  let selectedSlot = null;
+
+  // Build slot picker buttons
+  const slotOptionsEl = document.getElementById('slotOptions');
+  CONFIG.slotChoices.forEach(choice => {
+    const btn = document.createElement('div');
+    btn.className = 'slot-btn';
+    btn.textContent = choice.short;
+    btn.dataset.slot = choice.id;
+    btn.addEventListener('click', () => {
+      if (btn.classList.contains('disabled')) return;
+      selectedSlot = choice.id;
+      document.querySelectorAll('.slot-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+    });
+    slotOptionsEl.appendChild(btn);
+  });
+
+  // ---------------------------------------------------------------
+  // CAPACITY HELPERS
+  // ---------------------------------------------------------------
+  function countForSession(sessionId){
+    return registrations.filter(r => r.slot === sessionId || r.slot === '6-8').length;
+  }
+
+  function sessionStatus(session){
+    const count = countForSession(session.id);
+    const pct = Math.min(100, Math.round((count / session.capacity) * 100));
+    let state = 'ok';
+    if (count >= session.capacity) state = 'full';
+    else if (pct >= 75) state = 'amber';
+    return { count, pct, state };
+  }
+
+  // ---------------------------------------------------------------
+  // RENDER SESSIONS / CAPACITY METERS
+  // ---------------------------------------------------------------
+  function renderSessions(){
+    const wrap = document.getElementById('sessionsWrap');
+    wrap.innerHTML = '';
+    CONFIG.sessions.forEach(session => {
+      const { count, pct, state } = sessionStatus(session);
+      const card = document.createElement('div');
+      card.className = 'session-card';
+      card.innerHTML = `
+        <div class="session-top">
+          <div>
+            <div class="session-time">${session.label}</div>
+            <div class="session-sub">${session.courts} courts</div>
+          </div>
+          <div class="session-count ${state !== 'ok' ? state : ''}">${count} / ${session.capacity}</div>
+        </div>
+        <div class="court-track">
+          <div class="court-fill ${state !== 'ok' ? state : ''}" style="width:${pct}%"></div>
+        </div>
+        <div class="session-foot">${state === 'full' ? 'Slot full' : (session.capacity - count) + ' spots left'}</div>
+      `;
+      wrap.appendChild(card);
+    });
+
+    // disable slot buttons that are full
+    document.querySelectorAll('.slot-btn').forEach(btn => {
+      const slot = btn.dataset.slot;
+      let isFull = false;
+      if (slot === '6-8') {
+        isFull = CONFIG.sessions.some(s => sessionStatus(s).state === 'full');
+      } else {
+        const session = CONFIG.sessions.find(s => s.id === slot);
+        isFull = session && sessionStatus(session).state === 'full';
+      }
+      btn.classList.toggle('disabled', isFull);
+      if (isFull && selectedSlot === slot) selectedSlot = null;
+    });
+  }
+
+  // ---------------------------------------------------------------
+  // RENDER ROSTER
+  // ---------------------------------------------------------------
+  function slotLabel(slot){
+    const found = CONFIG.slotChoices.find(c => c.id === slot);
+    return found ? found.short : slot;
+  }
+
+  function renderRoster(){
+    const wrap = document.getElementById('rosterWrap');
+    document.getElementById('rosterCount').textContent = registrations.length;
+    if (registrations.length === 0){
+      wrap.innerHTML = '<div class="roster-empty">No one has registered yet — be the first.</div>';
+      return;
+    }
+    wrap.innerHTML = registrations
+      .sort((a,b) => a.ts - b.ts)
+      .map((r, i) => `
+        <div class="roster-row">
+          <div class="roster-num">${i + 1}</div>
+          <div class="roster-name">${escapeHtml(r.name)}</div>
+          <div class="roster-badge">${slotLabel(r.slot)}</div>
+        </div>
+      `).join('');
+  }
+
+  function escapeHtml(str){
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  // ---------------------------------------------------------------
+  // WHATSAPP MESSAGE HELPERS
+  // ---------------------------------------------------------------
+  function buildShareText(addedRegistration){
+    const ordered = registrations.slice().sort((a,b) => a.ts - b.ts);
+    const lines = [
+      `🏸 ${CONFIG.clubName} ${CONFIG.eventTitle}`,
+      `*${CONFIG.eventDate}* ${CONFIG.eventDay}`,
+      `${CONFIG.timeRange}`,
+      '',
+      `Charges for a person:`,
+      `${CONFIG.price1Hour} for 1 hour`,
+      `${CONFIG.price2Hour} for 2 hours`,
+      '',
+      `🏸 ${CONFIG.shuttle}`,
+      `📍 Location: ${CONFIG.mapsLink}`,
+      `Organiser: ${CONFIG.organizerName} ${CONFIG.organizerPhone}`,
+      '',
+      `Add Your Name`,
+      ''
+    ];
+
+    ordered.forEach((r, i) => {
+      lines.push(`${i + 1}. ${r.name} (${slotLabel(r.slot)})`);
+    });
+
+    const maxRows = 22;
+    for (let i = ordered.length + 1; i <= maxRows; i++) {
+      lines.push(`${i}.`);
+    }
+
+    lines.push(
+      '',
+      `${CONFIG.sessions[0].courts} Courts (6-7) ${CONFIG.sessions[0].capacity} Members`,
+      `${CONFIG.sessions[1].courts} courts (7-8) ${CONFIG.sessions[1].capacity} Members`,
+      '',
+      'Available',
+      '',
+      'Please add your Names And timing those who are interested to play'
+    );
+
+    return lines.join('\n');
+  }
+
+  async function copyText(text){
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch (err){
+      return false;
+    }
+  }
+
+  function openWhatsAppWithMessage(message){
+    // WhatsApp invite links cannot pre-fill a message inside the group.
+    // The message is copied to clipboard, then this opens the requested group link directly.
+    window.open(CONFIG.whatsappGroupLink, '_blank');
+  }
+
+  // ---------------------------------------------------------------
+  // LIVE BACKEND STORAGE
+  // Data is saved on the server in data/registrations.json, so everyone sees the same list.
+  // ---------------------------------------------------------------
+  async function api(path, options = {}){
+    const res = await fetch(path, {
+      headers: { 'Content-Type': 'application/json' },
+      cache: 'no-store',
+      ...options
+    });
+    if (!res.ok){
+      const info = await res.json().catch(() => ({}));
+      throw new Error(info.error || 'Server error');
+    }
+    return res.json();
+  }
+
+  async function loadRegistrations(){
+    try {
+      const data = await api('/api/registrations');
+      registrations = Array.isArray(data.registrations) ? data.registrations : [];
+    } catch (err){
+      formMsg.textContent = 'Could not load live data from the server.';
+      formMsg.className = 'form-msg error';
+      registrations = [];
+    }
+    renderSessions();
+    renderRoster();
+  }
+
+  async function addRegistrationToServer(name, slot){
+    const data = await api('/api/registrations', {
+      method: 'POST',
+      body: JSON.stringify({ name, slot })
+    });
+    registrations = data.registrations || [];
+    return data.added;
+  }
+
+  async function clearRegistrationsOnServer(pin){
+    const data = await api('/api/registrations', {
+      method: 'DELETE',
+      body: JSON.stringify({ pin })
+    });
+    registrations = data.registrations || [];
+  }
+
+  // ---------------------------------------------------------------
+  // FORM SUBMIT
+  // ---------------------------------------------------------------
+  const formMsg = document.getElementById('formMsg');
+  const submitBtn = document.getElementById('submitBtn');
+
+  submitBtn.addEventListener('click', async () => {
+    formMsg.textContent = '';
+    formMsg.className = 'form-msg';
+
+    const name = document.getElementById('nameInput').value.trim();
+    if (!name){
+      formMsg.textContent = 'Enter your name first.';
+      formMsg.className = 'form-msg error';
+      return;
+    }
+    if (!selectedSlot){
+      formMsg.textContent = 'Pick a timing.';
+      formMsg.className = 'form-msg error';
+      return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Adding…';
+
+    try {
+      // re-check latest state before writing, in case someone else just registered
+      await loadRegistrations();
+
+      const wouldExceed = CONFIG.sessions.some(session => {
+        const appliesTo = selectedSlot === '6-8' || selectedSlot === session.id;
+        if (!appliesTo) return false;
+        return countForSession(session.id) >= session.capacity;
+      });
+
+      if (wouldExceed){
+        formMsg.textContent = 'That timing just filled up — pick another.';
+        formMsg.className = 'form-msg error';
+        renderSessions();
+        return;
+      }
+
+      const addedRegistration = await addRegistrationToServer(name, selectedSlot);
+      renderSessions();
+      renderRoster();
+
+      const message = buildShareText(addedRegistration);
+      await copyText(message);
+
+      document.getElementById('nameInput').value = '';
+      selectedSlot = null;
+      document.querySelectorAll('.slot-btn').forEach(b => b.classList.remove('selected'));
+
+      formMsg.textContent = 'Added and saved. Full updated WhatsApp list copied; opening the group…';
+      formMsg.className = 'form-msg success';
+
+      openWhatsAppWithMessage(message);
+    } catch (err){
+      formMsg.textContent = 'Could not save right now, try again.';
+      formMsg.className = 'form-msg error';
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Add me to the list';
+    }
+  });
+
+  // ---------------------------------------------------------------
+  // COPY / REFRESH
+  // ---------------------------------------------------------------
+  document.getElementById('copyBtn').addEventListener('click', async () => {
+    await loadRegistrations();
+    const text = buildShareText();
+    try {
+      await navigator.clipboard.writeText(text);
+      const btn = document.getElementById('copyBtn');
+      const original = btn.textContent;
+      btn.textContent = 'Copied ✓';
+      setTimeout(() => btn.textContent = original, 1500);
+    } catch (err){
+      alert(text);
+    }
+  });
+
+  document.getElementById('refreshBtn').addEventListener('click', loadRegistrations);
+
+  document.getElementById('clearBtn').addEventListener('click', async () => {
+    const ok = confirm('Clear saved registrations and return to the starter list?');
+    if (!ok) return;
+    const pin = prompt('Enter admin PIN to clear data:');
+    if (pin === null) return;
+    await clearRegistrationsOnServer(pin);
+    renderSessions();
+    renderRoster();
+    formMsg.textContent = 'Saved data cleared — starter list restored.';
+    formMsg.className = 'form-msg success';
+  });
+
+  // ---------------------------------------------------------------
+  // INIT + POLLING
+  // ---------------------------------------------------------------
+  loadRegistrations();
+  setInterval(loadRegistrations, 2000);
+</script>
+
+</body>
+</html>

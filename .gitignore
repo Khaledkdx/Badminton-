@@ -1,0 +1,5 @@
+node_modules/
+.DS_Store
+data/registrations.json
+npm-debug.log*
+.env
