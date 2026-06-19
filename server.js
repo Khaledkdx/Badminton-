@@ -17,38 +17,15 @@ const CONFIG = {
     { id: '6-7', capacity: 16 },
     { id: '7-8', capacity: 16 }
   ],
-  slotChoices: ['6-7', '7-8', '6-8'],
-  defaultRegistrations: [
-    { name: 'Nithesh', slot: '6-8' },
-    { name: 'Shaji', slot: '6-8' },
-    { name: 'Dhas', slot: '6-8' },
-    { name: 'Renin', slot: '6-8' },
-    { name: 'Biju', slot: '7-8' },
-    { name: 'Marzook', slot: '7-8' },
-    { name: 'rizad', slot: '6-8' },
-    { name: 'Sufyan', slot: '6-8' },
-    { name: 'syahiran', slot: '6-8' },
-    { name: 'Suresh', slot: '6-8' },
-    { name: 'Rahul', slot: '6-8' }
-  ]
+  slotChoices: ['6-7', '7-8', '6-8']
 };
-
-function seedRegistrations(){
-  const baseTs = 1700000000000;
-  return CONFIG.defaultRegistrations.map((r, i) => ({
-    id: `seed-${i + 1}`,
-    name: r.name,
-    slot: r.slot,
-    ts: baseTs + i
-  }));
-}
 
 async function ensureDataFile(){
   await fs.mkdir(DATA_DIR, { recursive: true });
   try {
     await fs.access(DATA_FILE);
   } catch {
-    await writeRegistrations(seedRegistrations());
+    await writeRegistrations([]);
   }
 }
 
@@ -56,7 +33,7 @@ async function readRegistrations(){
   await ensureDataFile();
   const raw = await fs.readFile(DATA_FILE, 'utf8');
   const data = JSON.parse(raw || '[]');
-  return Array.isArray(data) ? data : seedRegistrations();
+  return Array.isArray(data) ? data : [];
 }
 
 async function writeRegistrations(registrations){
@@ -134,7 +111,7 @@ app.delete('/api/registrations', async (req, res) => {
     if (pin !== CLEAR_PIN) {
       return res.status(403).json({ error: 'Wrong clear PIN.' });
     }
-    const registrations = seedRegistrations();
+    const registrations = [];
     await writeRegistrations(registrations);
     res.json({ registrations });
   } catch (err) {

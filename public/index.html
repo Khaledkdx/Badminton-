@@ -417,19 +417,6 @@
       { id: "6-7", short: "6–7 PM" },
       { id: "7-8", short: "7–8 PM" },
       { id: "6-8", short: "6–8 PM" }
-    ],
-    defaultRegistrations: [
-      { name: "Nithesh", slot: "6-8" },
-      { name: "Shaji", slot: "6-8" },
-      { name: "Dhas", slot: "6-8" },
-      { name: "Renin", slot: "6-8" },
-      { name: "Biju", slot: "7-8" },
-      { name: "Marzook", slot: "7-8" },
-      { name: "rizad", slot: "6-8" },
-      { name: "Sufyan", slot: "6-8" },
-      { name: "syahiran", slot: "6-8" },
-      { name: "Suresh", slot: "6-8" },
-      { name: "Rahul", slot: "6-8" }
     ]
   };
 
@@ -751,14 +738,14 @@
   document.getElementById('refreshBtn').addEventListener('click', loadRegistrations);
 
   document.getElementById('clearBtn').addEventListener('click', async () => {
-    const ok = confirm('Clear saved registrations and return to the starter list?');
+    const ok = confirm('Clear all saved registrations?');
     if (!ok) return;
     const pin = prompt('Enter admin PIN to clear data:');
     if (pin === null) return;
     await clearRegistrationsOnServer(pin);
     renderSessions();
     renderRoster();
-    formMsg.textContent = 'Saved data cleared — starter list restored.';
+    formMsg.textContent = 'Saved data cleared.';
     formMsg.className = 'form-msg success';
   });
 

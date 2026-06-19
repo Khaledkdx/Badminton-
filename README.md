@@ -8,7 +8,7 @@ Small backend + frontend for the badminton registration page.
 - Registrations are saved on the server in `data/registrations.json`.
 - The page polls the server every 2 seconds, so new names appear for everyone.
 - The WhatsApp message always contains the latest full list.
-- `Clear data` resets the list back to the starter list after entering the admin PIN.
+- `Clear data` removes all saved registrations after entering the admin PIN.
 
 ## Run locally
 
