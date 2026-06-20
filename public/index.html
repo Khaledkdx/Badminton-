@@ -68,6 +68,8 @@
     text-transform:uppercase;
     letter-spacing:.01em;
     line-height:1.05;
+    cursor:pointer;
+    user-select:none;
   }
   .event-title{
     font-family:'Oswald', sans-serif;
@@ -342,10 +344,11 @@
     margin-top:4px;
   }
   .winner-actions{
-    display:flex;
+    display:none;
     justify-content:flex-end;
     margin-top:10px;
   }
+  body.admin-open .winner-actions{ display:flex; }
   .delete-winner-btn{
     border:1px solid rgba(214,85,63,0.22);
     background:rgba(214,85,63,0.06);
@@ -363,6 +366,7 @@
     padding:18px;
     margin-top:14px;
   }
+  .admin-panel[hidden]{ display:none; }
   .admin-grid{
     display:grid;
     grid-template-columns:1fr 1fr;
@@ -390,6 +394,12 @@
     cursor:pointer;
   }
   .util-btn:hover{ background: rgba(20,32,28,0.04); }
+  .admin-actions{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+    margin-top:12px;
+  }
 
   .footer-note{
     text-align:center;
@@ -403,6 +413,7 @@
     .club-name{ font-size:28px; }
     .slot-options{ grid-template-columns:1fr; }
     .admin-grid{ grid-template-columns:1fr; }
+    .admin-actions{ grid-template-columns:1fr; }
   }
 </style>
 </head>
@@ -455,31 +466,35 @@
   <div class="util-row">
     <button class="util-btn" id="copyBtn">Copy list as text</button>
     <button class="util-btn" id="refreshBtn">Refresh now</button>
-    <button class="util-btn" id="clearBtn">Clear data</button>
   </div>
 
-  <div class="section-label">Admin Winners</div>
-  <div class="admin-card">
-    <div class="admin-grid">
-      <div class="field">
-        <label for="winnerTitleInput">Title</label>
-        <input type="text" id="winnerTitleInput" placeholder="e.g. Ramadan Champions" maxlength="80">
+  <div class="admin-panel" id="adminPanel" hidden>
+    <div class="section-label">Admin</div>
+    <div class="admin-card">
+      <div class="admin-grid">
+        <div class="field">
+          <label for="winnerTitleInput">Title</label>
+          <input type="text" id="winnerTitleInput" placeholder="e.g. Ramadan Champions" maxlength="80">
+        </div>
+        <div class="field">
+          <label for="winnerDateInput">Tournament date</label>
+          <input type="date" id="winnerDateInput">
+        </div>
+        <div class="field">
+          <label for="winnerPinInput">Admin PIN</label>
+          <input type="password" id="winnerPinInput" placeholder="Admin PIN">
+        </div>
+        <div class="field">
+          <label for="winnerImageInput">Winner photo</label>
+          <input class="file-input" type="file" id="winnerImageInput" accept="image/png,image/jpeg,image/webp,image/gif">
+        </div>
       </div>
-      <div class="field">
-        <label for="winnerDateInput">Tournament date</label>
-        <input type="date" id="winnerDateInput">
+      <div class="admin-actions">
+        <button class="submit-btn" id="winnerSubmitBtn">Save winner photo</button>
+        <button class="util-btn" id="clearBtn">Clear data</button>
       </div>
-      <div class="field">
-        <label for="winnerPinInput">Admin PIN</label>
-        <input type="password" id="winnerPinInput" placeholder="Admin PIN">
-      </div>
-      <div class="field">
-        <label for="winnerImageInput">Winner photo</label>
-        <input class="file-input" type="file" id="winnerImageInput" accept="image/png,image/jpeg,image/webp,image/gif">
-      </div>
+      <div class="form-msg" id="winnerMsg"></div>
     </div>
-    <button class="submit-btn" id="winnerSubmitBtn">Save winner photo</button>
-    <div class="form-msg" id="winnerMsg"></div>
   </div>
 
   <div class="footer-note">PAGE SYNCS AUTOMATICALLY EVERY FEW SECONDS</div>
@@ -520,7 +535,12 @@
   // ---------------------------------------------------------------
   // RENDER META
   // ---------------------------------------------------------------
-  document.getElementById('clubName').textContent = CONFIG.clubName;
+  const clubNameEl = document.getElementById('clubName');
+  const adminPanelEl = document.getElementById('adminPanel');
+  let adminTapCount = 0;
+  let adminTapTimer = null;
+
+  clubNameEl.textContent = CONFIG.clubName;
   document.getElementById('eventTitle').textContent = CONFIG.eventTitle;
   document.getElementById('metaTime').textContent = CONFIG.timeRange;
   document.getElementById('metaShuttle').textContent = CONFIG.shuttle;
@@ -529,6 +549,27 @@
   const orgEl = document.getElementById('metaOrganizer');
   orgEl.textContent = CONFIG.organizerName + " · " + CONFIG.organizerPhone;
   orgEl.href = "https://wa.me/" + CONFIG.organizerPhoneIntl;
+
+  function revealAdminPanel(){
+    adminPanelEl.hidden = false;
+    document.body.classList.add('admin-open');
+    adminPanelEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    document.getElementById('winnerPinInput').focus({ preventScroll: true });
+  }
+
+  clubNameEl.addEventListener('click', () => {
+    adminTapCount += 1;
+    clearTimeout(adminTapTimer);
+    adminTapTimer = setTimeout(() => {
+      adminTapCount = 0;
+    }, 2500);
+
+    if (adminTapCount >= 6){
+      adminTapCount = 0;
+      clearTimeout(adminTapTimer);
+      revealAdminPanel();
+    }
+  });
 
   // ---------------------------------------------------------------
   // STATE
