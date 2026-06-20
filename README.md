@@ -9,6 +9,7 @@ Small backend + frontend for the badminton registration page.
 - The page polls the server every 2 seconds, so new names appear for everyone.
 - The WhatsApp message always contains the latest full list.
 - `Clear data` removes all saved registrations after entering the admin PIN.
+- Admins can add tournament winner photos with dates using the same admin PIN.
 
 ## Run locally
 

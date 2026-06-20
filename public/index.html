@@ -307,6 +307,71 @@
     font-size:13.5px;
   }
 
+  /* ---------- WINNERS ---------- */
+  .winners-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));
+    gap:12px;
+  }
+  .winner-card{
+    background:#fff;
+    border:1px solid var(--card-border);
+    border-radius:12px;
+    overflow:hidden;
+  }
+  .winner-photo{
+    width:100%;
+    aspect-ratio:4 / 3;
+    object-fit:cover;
+    display:block;
+    background:#EEF0EA;
+  }
+  .winner-info{
+    padding:12px 14px 14px;
+  }
+  .winner-title{
+    font-family:'Oswald', sans-serif;
+    font-weight:600;
+    font-size:16px;
+    line-height:1.2;
+  }
+  .winner-date{
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    color:var(--gray);
+    margin-top:4px;
+  }
+  .winner-actions{
+    display:flex;
+    justify-content:flex-end;
+    margin-top:10px;
+  }
+  .delete-winner-btn{
+    border:1px solid rgba(214,85,63,0.22);
+    background:rgba(214,85,63,0.06);
+    color:var(--full-red);
+    border-radius:7px;
+    padding:7px 9px;
+    font-size:11px;
+    font-weight:700;
+    cursor:pointer;
+  }
+  .admin-card{
+    background:#fff;
+    border:1px solid var(--card-border);
+    border-radius:12px;
+    padding:18px;
+    margin-top:14px;
+  }
+  .admin-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+  }
+  .file-input{
+    padding:10px 12px;
+  }
+
   /* ---------- UTILITY ---------- */
   .util-row{
     display:flex;
@@ -337,6 +402,7 @@
   @media (max-width:420px){
     .club-name{ font-size:28px; }
     .slot-options{ grid-template-columns:1fr; }
+    .admin-grid{ grid-template-columns:1fr; }
   }
 </style>
 </head>
@@ -362,6 +428,11 @@
   <div class="section-label">Court Capacity</div>
   <div class="sessions" id="sessionsWrap"></div>
 
+  <div class="section-label">Tournament Winners</div>
+  <div class="winners-grid" id="winnersWrap">
+    <div class="roster-empty">Loading winners…</div>
+  </div>
+
   <div class="section-label">Add Your Name</div>
   <div class="form-card">
     <div class="field">
@@ -372,7 +443,7 @@
       <label>Timing</label>
       <div class="slot-options" id="slotOptions"></div>
     </div>
-    <button class="submit-btn" id="submitBtn">Add me to the list</button>
+    <button class="submit-btn" id="submitBtn">Add me to the list & Group</button>
     <div class="form-msg" id="formMsg"></div>
   </div>
 
@@ -385,6 +456,30 @@
     <button class="util-btn" id="copyBtn">Copy list as text</button>
     <button class="util-btn" id="refreshBtn">Refresh now</button>
     <button class="util-btn" id="clearBtn">Clear data</button>
+  </div>
+
+  <div class="section-label">Admin Winners</div>
+  <div class="admin-card">
+    <div class="admin-grid">
+      <div class="field">
+        <label for="winnerTitleInput">Title</label>
+        <input type="text" id="winnerTitleInput" placeholder="e.g. Ramadan Champions" maxlength="80">
+      </div>
+      <div class="field">
+        <label for="winnerDateInput">Tournament date</label>
+        <input type="date" id="winnerDateInput">
+      </div>
+      <div class="field">
+        <label for="winnerPinInput">Admin PIN</label>
+        <input type="password" id="winnerPinInput" placeholder="Admin PIN">
+      </div>
+      <div class="field">
+        <label for="winnerImageInput">Winner photo</label>
+        <input class="file-input" type="file" id="winnerImageInput" accept="image/png,image/jpeg,image/webp,image/gif">
+      </div>
+    </div>
+    <button class="submit-btn" id="winnerSubmitBtn">Save winner photo</button>
+    <div class="form-msg" id="winnerMsg"></div>
   </div>
 
   <div class="footer-note">PAGE SYNCS AUTOMATICALLY EVERY FEW SECONDS</div>
@@ -439,6 +534,7 @@
   // STATE
   // ---------------------------------------------------------------
   let registrations = [];
+  let winners = [];
   let selectedSlot = null;
 
   // Build slot picker buttons
@@ -547,6 +643,33 @@
   }
 
   // ---------------------------------------------------------------
+  // RENDER WINNERS
+  // ---------------------------------------------------------------
+  function renderWinners(){
+    const wrap = document.getElementById('winnersWrap');
+    if (winners.length === 0){
+      wrap.innerHTML = '<div class="roster-empty">No winner photos yet.</div>';
+      return;
+    }
+
+    wrap.innerHTML = winners
+      .slice()
+      .sort((a, b) => b.ts - a.ts)
+      .map(w => `
+        <div class="winner-card">
+          <img class="winner-photo" src="${w.image}" alt="${escapeHtml(w.title)}">
+          <div class="winner-info">
+            <div class="winner-title">${escapeHtml(w.title)}</div>
+            <div class="winner-date">${escapeHtml(w.date)}</div>
+            <div class="winner-actions">
+              <button class="delete-winner-btn" data-winner-id="${escapeHtml(w.id)}">Delete</button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+  }
+
+  // ---------------------------------------------------------------
   // WHATSAPP MESSAGE HELPERS
   // ---------------------------------------------------------------
   function buildShareText(addedRegistration){
@@ -635,6 +758,16 @@
     renderRoster();
   }
 
+  async function loadWinners(){
+    try {
+      const data = await api('/api/winners');
+      winners = Array.isArray(data.winners) ? data.winners : [];
+    } catch (err){
+      winners = [];
+    }
+    renderWinners();
+  }
+
   async function addRegistrationToServer(name, slot){
     const data = await api('/api/registrations', {
       method: 'POST',
@@ -650,6 +783,55 @@
       body: JSON.stringify({ pin })
     });
     registrations = data.registrations || [];
+  }
+
+  async function addWinnerToServer({ title, date, image, pin }){
+    const data = await api('/api/winners', {
+      method: 'POST',
+      body: JSON.stringify({ title, date, image, pin })
+    });
+    winners = data.winners || [];
+    return data.added;
+  }
+
+  async function deleteWinnerFromServer(id, pin){
+    const data = await api('/api/winners/' + encodeURIComponent(id), {
+      method: 'DELETE',
+      body: JSON.stringify({ pin })
+    });
+    winners = data.winners || [];
+  }
+
+  function readFileAsDataUrl(file){
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result || ''));
+      reader.onerror = () => reject(new Error('Could not read image.'));
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function imageFileToDataUrl(file){
+    if (file.type === 'image/gif') return readFileAsDataUrl(file);
+
+    const sourceUrl = URL.createObjectURL(file);
+    try {
+      const image = new Image();
+      image.src = sourceUrl;
+      await image.decode();
+
+      const maxSide = 1400;
+      const scale = Math.min(1, maxSide / Math.max(image.width, image.height));
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.max(1, Math.round(image.width * scale));
+      canvas.height = Math.max(1, Math.round(image.height * scale));
+
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+      return canvas.toDataURL('image/jpeg', 0.84);
+    } finally {
+      URL.revokeObjectURL(sourceUrl);
+    }
   }
 
   // ---------------------------------------------------------------
@@ -714,7 +896,82 @@
       formMsg.className = 'form-msg error';
     } finally {
       submitBtn.disabled = false;
-      submitBtn.textContent = 'Add me to the list';
+      submitBtn.textContent = 'Add me to the list & Group';
+    }
+  });
+
+  // ---------------------------------------------------------------
+  // ADMIN WINNERS
+  // ---------------------------------------------------------------
+  const winnerMsg = document.getElementById('winnerMsg');
+  const winnerSubmitBtn = document.getElementById('winnerSubmitBtn');
+
+  winnerSubmitBtn.addEventListener('click', async () => {
+    winnerMsg.textContent = '';
+    winnerMsg.className = 'form-msg';
+
+    const title = document.getElementById('winnerTitleInput').value.trim() || 'Tournament Winners';
+    const date = document.getElementById('winnerDateInput').value;
+    const pin = document.getElementById('winnerPinInput').value;
+    const file = document.getElementById('winnerImageInput').files[0];
+
+    if (!date){
+      winnerMsg.textContent = 'Pick the tournament date.';
+      winnerMsg.className = 'form-msg error';
+      return;
+    }
+    if (!pin){
+      winnerMsg.textContent = 'Enter the admin PIN.';
+      winnerMsg.className = 'form-msg error';
+      return;
+    }
+    if (!file){
+      winnerMsg.textContent = 'Choose a winner photo.';
+      winnerMsg.className = 'form-msg error';
+      return;
+    }
+    if (!file.type.startsWith('image/')){
+      winnerMsg.textContent = 'Choose an image file.';
+      winnerMsg.className = 'form-msg error';
+      return;
+    }
+    if (file.size > 12 * 1024 * 1024){
+      winnerMsg.textContent = 'Image is too large. Use a photo under 12 MB.';
+      winnerMsg.className = 'form-msg error';
+      return;
+    }
+
+    winnerSubmitBtn.disabled = true;
+    winnerSubmitBtn.textContent = 'Saving…';
+
+    try {
+      const image = await imageFileToDataUrl(file);
+      await addWinnerToServer({ title, date, image, pin });
+      renderWinners();
+      document.getElementById('winnerTitleInput').value = '';
+      document.getElementById('winnerDateInput').value = '';
+      document.getElementById('winnerImageInput').value = '';
+      winnerMsg.textContent = 'Winner photo saved.';
+      winnerMsg.className = 'form-msg success';
+    } catch (err){
+      winnerMsg.textContent = err.message || 'Could not save winner photo.';
+      winnerMsg.className = 'form-msg error';
+    } finally {
+      winnerSubmitBtn.disabled = false;
+      winnerSubmitBtn.textContent = 'Save winner photo';
+    }
+  });
+
+  document.getElementById('winnersWrap').addEventListener('click', async (event) => {
+    const btn = event.target.closest('.delete-winner-btn');
+    if (!btn) return;
+    const pin = prompt('Enter admin PIN to delete this winner photo:');
+    if (pin === null) return;
+    try {
+      await deleteWinnerFromServer(btn.dataset.winnerId, pin);
+      renderWinners();
+    } catch (err){
+      alert(err.message || 'Could not delete winner photo.');
     }
   });
 
@@ -735,7 +992,10 @@
     }
   });
 
-  document.getElementById('refreshBtn').addEventListener('click', loadRegistrations);
+  document.getElementById('refreshBtn').addEventListener('click', async () => {
+    await loadRegistrations();
+    await loadWinners();
+  });
 
   document.getElementById('clearBtn').addEventListener('click', async () => {
     const ok = confirm('Clear all saved registrations?');
@@ -753,7 +1013,9 @@
   // INIT + POLLING
   // ---------------------------------------------------------------
   loadRegistrations();
+  loadWinners();
   setInterval(loadRegistrations, 2000);
+  setInterval(loadWinners, 5000);
 </script>
 
 </body>

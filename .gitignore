@@ -1,5 +1,6 @@
 node_modules/
 .DS_Store
 data/registrations.json
+data/winners.json
 npm-debug.log*
 .env
