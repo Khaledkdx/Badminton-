@@ -61,6 +61,21 @@
     margin-bottom:10px;
   }
   .eyebrow .dot{ width:6px; height:6px; border-radius:50%; background:var(--shuttle-lime); }
+  .brand-row{
+    display:flex;
+    align-items:center;
+    gap:14px;
+  }
+  .club-logo{
+    width:64px;
+    height:64px;
+    object-fit:contain;
+    flex-shrink:0;
+    border-radius:12px;
+    background:rgba(247,246,241,0.08);
+    border:1px solid rgba(247,246,241,0.14);
+    padding:7px;
+  }
   .club-name{
     font-family:'Oswald', sans-serif;
     font-weight:700;
@@ -411,6 +426,7 @@
 
   @media (max-width:420px){
     .club-name{ font-size:28px; }
+    .club-logo{ width:54px; height:54px; }
     .slot-options{ grid-template-columns:1fr; }
     .admin-grid{ grid-template-columns:1fr; }
     .admin-actions{ grid-template-columns:1fr; }
@@ -422,7 +438,10 @@
 <div class="header">
   <div class="header-inner">
     <div class="eyebrow"><span class="dot"></span>LIVE ROSTER — UPDATES FOR EVERYONE</div>
-    <div class="club-name" id="clubName">Ace Badminton Club</div>
+    <div class="brand-row">
+      <img class="club-logo" src="/assets/fbc-logo.png" alt="FBC logo">
+      <div class="club-name" id="clubName">Ace Badminton Club</div>
+    </div>
     <div class="event-title" id="eventTitle">Thursday Badminton Night</div>
     <div class="meta-row">
       <div class="meta-chip"><span class="label">Time</span><span id="metaTime">—</span></div>
@@ -715,10 +734,14 @@
   // ---------------------------------------------------------------
   function buildShareText(addedRegistration){
     const ordered = registrations.slice().sort((a,b) => a.ts - b.ts);
+    const latestLine = addedRegistration ? `New player: ${addedRegistration.name} (${slotLabel(addedRegistration.slot)})` : null;
     const lines = [
       `🏸 ${CONFIG.clubName} ${CONFIG.eventTitle}`,
       `*${CONFIG.eventDate}* ${CONFIG.eventDay}`,
       `${CONFIG.timeRange}`,
+      '',
+      `Registered players: ${ordered.length}`,
+      latestLine,
       '',
       `Charges for a person:`,
       `${CONFIG.price1Hour} for 1 hour`,
@@ -728,9 +751,9 @@
       `📍 Location: ${CONFIG.mapsLink}`,
       `Organiser: ${CONFIG.organizerName} ${CONFIG.organizerPhone}`,
       '',
-      `Add Your Name`,
+      `Players list`,
       ''
-    ];
+    ].filter(line => line !== null);
 
     ordered.forEach((r, i) => {
       lines.push(`${i + 1}. ${r.name} (${slotLabel(r.slot)})`);
